@@ -1,0 +1,48 @@
+import random
+import time
+import tkinter as tk
+
+root = tk.Tk()
+root.title("Тест на реакцию")
+root.geometry("400x300")
+root.resizable(False, False)
+
+state = "idle"  # idle -> waiting -> ready
+start_time = 0
+best = None
+after_id = None
+
+box = tk.Label(root, text="Нажми, чтобы начать", font=("Arial", 18),
+               bg="#357", fg="white")
+box.pack(fill="both", expand=True)
+
+info = tk.Label(root, text="Лучший: —", font=("Arial", 12))
+info.pack(pady=6)
+
+def go_green():
+    global state, start_time
+    state = "ready"
+    start_time = time.perf_counter()
+    box.config(bg="#2b2", text="ЖМИ!!!")
+
+def click(event=None):
+    global state, best, after_id
+    if state == "idle":
+        state = "waiting"
+        box.config(bg="#c33", text="Жди зелёного...")
+        after_id = root.after(random.randint(1500, 4000), go_green)
+    elif state == "waiting":
+        root.after_cancel(after_id)
+        state = "idle"
+        box.config(bg="#357", text="Рано! Нажми, чтобы заново")
+    else:
+        ms = int((time.perf_counter() - start_time) * 1000)
+        state = "idle"
+        if best is None or ms < best:
+            best = ms
+            info.config(text=f"Лучший: {best} мс")
+        box.config(bg="#357", text=f"{ms} мс\nНажми, чтобы ещё раз")
+
+box.bind("<Button-1>", click)
+root.bind("<space>", click)
+root.mainloop()
